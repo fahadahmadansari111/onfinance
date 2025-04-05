@@ -24,6 +24,20 @@ prometheus:
           resources:
             requests:
               storage: 20Gi
+  additionalRules:
+    - name: example
+      groups:
+        - name: example-rules
+          rules:
+            - alert: HighPodCPU
+              expr: sum(rate(container_cpu_usage_seconds_total{container!="",pod!=""}[5m])) by (pod) > 0.8
+              for: 2m
+              labels:
+                severity: warning
+              annotations:
+                summary: "High CPU usage detected"
+                description: "Pod {{ $labels.pod }} is using >80% CPU for 2 minutes."
+
 
 alertmanager:
   alertmanagerSpec:
@@ -35,3 +49,13 @@ alertmanager:
           resources:
             requests:
               storage: 5Gi
+  config:
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: 'default-receiver'
+    receivers:
+      - name: 'default-receiver'
+        email_configs:
+          - to: 'your-team@example.com'
+            send_resolved: true
