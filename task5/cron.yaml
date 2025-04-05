@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: invoke-lambda-job
+  namespace: default
+spec:
+  schedule: "0 * * * *"  # every hour
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: lambda-invoker
+            image: amazonlinux:2023
+            command:
+              - /bin/bash
+              - -c
+              - |
+                yum install -y awscli;
+                aws lambda invoke \
+                  --function-name YOUR_LAMBDA_FUNCTION_NAME \
+                  --region YOUR_AWS_REGION \
+                  --invocation-type Event \
+                  /tmp/lambda_output.json;
+                cat /tmp/lambda_output.json
+            env:
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: aws-credentials
+                    key: aws_access_key_id
+              - name: AWS_SECRET_ACCESS_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: aws-credentials
+                    key: aws_secret_access_key
+              - name: AWS_DEFAULT_REGION
+                value: YOUR_AWS_REGION
+          restartPolicy: OnFailure
