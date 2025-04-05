@@ -1,0 +1,37 @@
+# values.yaml
+
+grafana:
+  enabled: true
+  adminPassword: "your-secure-password"
+  service:
+    type: LoadBalancer  # expose grafana externally
+  ingress:
+    enabled: false
+
+prometheus:
+  prometheusSpec:
+    replicas: 2  # High Availability
+    retention: 15d
+    resources:
+      requests:
+        memory: 400Mi
+      limits:
+        memory: 2Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+
+alertmanager:
+  alertmanagerSpec:
+    replicas: 2
+    storage:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 5Gi
